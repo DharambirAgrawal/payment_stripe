@@ -1,0 +1,32 @@
+{
+  "name": "payment-stripe",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.0.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.21.1",
+    "express-async-handler": "^1.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.14",
+    "prisma": "^5.22.0"
+  },
+  "keywords": [
+    "Payment",
+    "Stripe",
+    "multi-tenant",
+    "nodejs",
+    "express"
+  ],
+  "author": "Dharambir Agrawal",
+  "license": "ISC",
+  "description": "A reusable authentication server with multi-tenancy support"
+}
