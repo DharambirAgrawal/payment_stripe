@@ -9,14 +9,25 @@ import { logger } from "./src/utils/logger.js";
 // Load environment variables
 
 const app = express();
-
 // connect DB
 // import { PrismaClient } from "@prisma/client";
 // const prisma = new PrismaClient();
-
+// const corsOptions = {
+//   origin: 'https://urban-bassoon-vjwqprg79gv3wpqp-5173.app.github.dev/', // Your frontend URL
+//   methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
+//   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+// };
+// app.options('*', cors(corsOptions));
+// app.options('*', cors())
+const corsOptions = { 
+  // origin:'https://abc.onrender.com',
+  AccessControlAllowOrigin: '*',  
+  origin: '*',  
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE' 
+}
+app.use(cors(corsOptions));
 
 // Middleware
-app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger)

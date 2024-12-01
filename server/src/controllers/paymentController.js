@@ -45,36 +45,53 @@ export const createCustomer = asyncHandler(async (req, res) => {
 //     "card_Number":"4242424242424242",
 //     "card_CVC":"123"
 // }
-export const createCard=asyncHandler(async(req,res)=>{
-    try{
+// export const createCard=asyncHandler(async(req,res)=>{
+//     try{
 
         
-        const {  customer_id,
-            card_Name,
-            card_ExpYear,
-            card_ExpMonth,
-            card_Number,
-        card_CVC} = req.body
-        const card_token=await stripe.tokens.create({
-        card:{
-            name:card_Name,
-            number:card_Name,
-            exp_year:card_ExpYear,
-            exp_month:card_ExpMonth,
-            cvc:card_CVC
-        }
-    })
+//         const {  customer_id,
+//             card_Name,
+//             card_ExpYear,
+//             card_ExpMonth,
+//             card_Number,
+//         card_CVC} = req.body
+//         const card_token=await stripe.tokens.create({
+//         card:{
+//             name:card_Name,
+//             number:card_Name,
+//             exp_year:card_ExpYear,
+//             exp_month:card_ExpMonth,
+//             cvc:card_CVC
+//         }
+//     })
     
-    const card=await stripe.customers.createSource(customer_id,{
-        source:`${card_token.id}`
-    })
+//     const card=await stripe.customers.createSource(customer_id,{
+//         source:`${card_token.id}`
+//     })
     
-    res.json({card:card.id})
-}catch(err){
-    console.log(err)
-    res.status(500).send('err')
-}
-})
+//     res.json({card:card.id})
+// }catch(err){
+//     console.log(err)
+//     res.status(500).send('err')
+// }
+// })
+export const createCard = asyncHandler(async (req, res) => {
+    try {
+        console.log('kkkkkkkkkkkkkkkkkk')
+      const { token, customer_id } = req.body;
+  
+      // Attach the card token to the customer
+      const card = await stripe.customers.createSource(customer_id, {
+        source: token,
+      });
+      console.log(card)
+  
+      res.json({ card: card.id });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Error creating card');
+    }
+  });
 
 
 // {
@@ -82,6 +99,7 @@ export const createCard=asyncHandler(async(req,res)=>{
 //     "customer_id":"cus_Nes",
 //     "amount":"3000" //30$
 // }
+// card: "card_1QR4irGGBE709rEn4Nbm70Bq"
 export const createCharge = asyncHandler(async (req, res) => {
     try{
 
@@ -91,8 +109,9 @@ export const createCharge = asyncHandler(async (req, res) => {
     const createCharge=await stripe.charges.create({
         receipt_email:"tester@gmail.com",
         currency:"INR",
-        card:req.body.card_id,
-        customer:req.body.customer_id
+        card:'card_1QR4irGGBE709rEn4Nbm70Bq',
+        customer:"cus_RJYacWHQstxAaE",
+        amount:"5000"
     })
     
     res.json({createCharge})
@@ -106,28 +125,14 @@ export const createCharge = asyncHandler(async (req, res) => {
 export const test = asyncHandler(async (req, res) => {
     try{
 
-        
-        const {  customer_id,
-            card_Name,
-            card_ExpYear,
-            card_ExpMonth,
-            card_Number,
-        card_CVC} = req.body
-        const card_token=await stripe.tokens.create({
-        card:{
-            name:card_Name,
-            number:card_Name,
-            exp_year:card_ExpYear,
-            exp_month:card_ExpMonth,
-            cvc:card_CVC
-        }
-    })
-    
-    const card=await stripe.customers.createSource(customer_id,{
-        source:`${card_token.id}`
-    })
-    
-    res.json({card:card.id})
+        const response=await fetch("/healthy",{
+            method:"GET",
+            headers:{
+                "Content-Type":"application/json"
+            }
+        })
+    console.log(response)
+    res.json({card:'success'})
 }catch(err){
     console.log(err)
     res.status(500).send('err')
