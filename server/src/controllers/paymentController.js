@@ -1,33 +1,89 @@
 import asyncHandler from "express-async-handler"
 import { stripe } from "../../app.js";
 import { AppError } from "../errors/AppError.js";
+import { validateEmail } from "../utils/utils.js";
+import { prisma } from "../../app.js";
 
 
+//create customer
 export const createCustomer = asyncHandler(async (req, res) => {
-    const { name, email,description,phone,address } = req.body
+    const { name, email, description, phone, address } = req.body
 
-    if(!email || !name){
-        throw new AppError("Resource not Found",400)
+    if (!email || !name || !validateEmail(email)) {
+        throw new AppError("Resource not Found", 400)
+    }
+
+    //checking if user exists
+    const existingUser = await prisma.user.findUnique({
+        where: { email: email },
+    });
+
+    if (existingUser) {
+        throw new AppError("User already exists", 400)
     }
 
 
-     // Prepare the data object for Stripe
-     const customerData = { name:name, email:email }; // Required fields
+    // Preparing the data object for Stripe
+    const customerData = { name: name, email: email }; // Required fields
 
-     // Add optional fields if they are provided
-     if (description) customerData.description = description;
-     if (phone) customerData.phone = phone;
-     if (address) customerData.address = address;
- 
-     // Create customer on Stripe
-     const customer = await stripe.customers.create(customerData);
+    // Adding optional fields if they are provided
+    if (description) customerData.description = description;
+    if (phone) customerData.phone = phone;
+    if (address) customerData.address = address;
 
-    res.json(customer)
+    // Create customer on Stripe
+    const customer = await stripe.customers.create(customerData);
 
+    await prisma.user.create({
+        data: {
+            email: email,
+            stripeCustomerId: customer.id,
+        },
+    });
+
+    res.status(200).json({customer_id:customer.id})
 })
 
 
+// Create a payment intent
+export const paymentIntent = asyncHandler(async (req, res) => {
 
+        const { amount, currency = 'usd', description } = req.body;
+
+        // Validate the request
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ error: 'Invalid amount' });
+        }
+
+        // Create a PaymentIntent with the specified amount
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100), // Convert to cents
+            currency,
+            description,
+            automatic_payment_methods: {
+                enabled: true,
+            },
+        });
+
+        console.log(paymentIntent)
+
+        res.json({
+            clientSecret: paymentIntent.client_secret,
+        });
+});
+
+
+export const createCard = asyncHandler(async (req, res) => {    
+        const { token, customer_id } = req.body;
+
+        // Attach the card token to the customer
+        const card = await stripe.customers.createSource(customer_id, {
+            source: token,
+        });
+        console.log(card)
+
+        res.json({ card: card.id });
+});
 
 
 
@@ -66,7 +122,7 @@ export const createCustomer = asyncHandler(async (req, res) => {
 // export const createCard=asyncHandler(async(req,res)=>{
 //     try{
 
-        
+
 //         const {  customer_id,
 //             card_Name,
 //             card_ExpYear,
@@ -82,34 +138,18 @@ export const createCustomer = asyncHandler(async (req, res) => {
 //             cvc:card_CVC
 //         }
 //     })
-    
+
 //     const card=await stripe.customers.createSource(customer_id,{
 //         source:`${card_token.id}`
 //     })
-    
+
 //     res.json({card:card.id})
 // }catch(err){
 //     console.log(err)
 //     res.status(500).send('err')
 // }
 // })
-export const createCard = asyncHandler(async (req, res) => {
-    try {
-        console.log('kkkkkkkkkkkkkkkkkk')
-      const { token, customer_id } = req.body;
-  
-      // Attach the card token to the customer
-      const card = await stripe.customers.createSource(customer_id, {
-        source: token,
-      });
-      console.log(card)
-  
-      res.json({ card: card.id });
-    } catch (err) {
-      console.error(err);
-      res.status(500).send('Error creating card');
-    }
-  });
+
 
 
 // {
@@ -119,79 +159,48 @@ export const createCard = asyncHandler(async (req, res) => {
 // }
 // card: "card_1QR4irGGBE709rEn4Nbm70Bq"
 export const createCharge = asyncHandler(async (req, res) => {
-    try{
+    try {
 
-        
-        const {} = req.body
-        
-    const createCharge=await stripe.charges.create({
-        receipt_email:"tester@gmail.com",
-        currency:"INR",
-        card:'card_1QR4irGGBE709rEn4Nbm70Bq',
-        customer:"cus_RJYacWHQstxAaE",
-        amount:"5000"
-    })
-    
-    res.json({createCharge})
-}catch(err){
-    console.log(err)
-    res.status(500).send('err')
-}
+
+        const { } = req.body
+
+        const createCharge = await stripe.charges.create({
+            receipt_email: "tester@gmail.com",
+            currency: "INR",
+            card: 'card_1QR4irGGBE709rEn4Nbm70Bq',
+            customer: "cus_RJYacWHQstxAaE",
+            amount: "5000"
+        })
+
+        res.json({ createCharge })
+    } catch (err) {
+        console.log(err)
+        res.status(500).send('err')
+    }
 
 })
 
 export const test = asyncHandler(async (req, res) => {
-    try{
+    try {
 
-        const response=await fetch("/healthy",{
-            method:"GET",
-            headers:{
-                "Content-Type":"application/json"
+        const response = await fetch("/healthy", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
             }
         })
-    console.log(response)
-    res.json({card:'success'})
-}catch(err){
-    console.log(err)
-    res.status(500).send('err')
-}
+        console.log(response)
+        res.json({ card: 'success' })
+    } catch (err) {
+        console.log(err)
+        res.status(500).send('err')
+    }
 
 })
 
 
 
-// Create a payment intent
-export const paymentIntent = asyncHandler(async (req, res) => {
 
-    try {
-
-        const { amount, currency = 'usd', description } = req.body;
-
-        // Validate the request
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ error: 'Invalid amount' });
-        }
-
-        // Create a PaymentIntent with the specified amount
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100), // Convert to cents
-            currency,
-            description,
-            automatic_payment_methods: {
-                enabled: true,
-            },
-        });
-
-        console.log(paymentIntent)
-
-        res.json({
-            clientSecret: paymentIntent.client_secret,
-        });
-    } catch (error) {
-        console.error('Error creating payment intent:', error);
-        res.status(500).json({ error: 'Failed to create payment intent' });
-    }
-});
 
 // Webhook handler for Stripe events
 export const webHook = asyncHandler(async (req, res) => {

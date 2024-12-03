@@ -54,8 +54,6 @@ model BillingAddress {
   updatedAt    DateTime  @updatedAt
 }
 
-
-
 model Transaction {
   id                String            @id @default(uuid())
   userId           String
@@ -95,17 +93,18 @@ model Refund {
 
 
 model PaymentIntent {
-  id                String            @id @default(uuid())
+  id               String            @id @default(uuid())
   userId           String
   user             User              @relation(fields: [userId], references: [id])
-  paymentIntentId  String       @unique
+  paymentIntentId  String            @unique
   amount           Float
   currency         String
-  status           PaymentIntentStatus
+  status           PaymentIntentStatus  @default(PROCESSING)
+  paymentMethodType             PaymentMethodType
   description      String?
   metadata         Json?
   canceledAt       DateTime?
-  transaction     Transaction?
+  transaction      Transaction?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -153,7 +152,6 @@ enum TransactionType {
 }
 
 enum PaymentIntentStatus {
-  REQUIRES_PAYMENT_METHOD
   REQUIRES_CONFIRMATION
   REQUIRES_ACTION
   PROCESSING
