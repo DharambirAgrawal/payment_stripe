@@ -9,43 +9,177 @@ datasource db {
 
 
 model User {
-  id          Int          @id @default(autoincrement())
-  email       String       @unique
-  name        String?
-  payments    Payment[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                String            @id @default(uuid())
+  email             String            @unique
+  stripeCustomerId  String?           @unique
+  paymentMethods    PaymentMethod[]
+  transactions      Transaction[]
+  invoices          Invoice[]
+  refunds           Refund[]
+  paymentIntents    PaymentIntent[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 }
 
-model Payment {
-  id            Int          @id @default(autoincrement())
-  amount        Float
-  currency      String
-  status        PaymentStatus
-  userId        Int
-  user          User         @relation(fields: [userId], references: [id])
-  transactions  Transaction[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+model PaymentMethod {
+  id                String        @id @default(uuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentMethodId String   @unique
+  type             PaymentMethodType
+  brand            String?       // visa, mastercard, etc.
+  billingAddress   BillingAddress?
+  last4            String?
+  expiryMonth      Int?
+  expiryYear       Int?
+  isDefault        Boolean       @default(false)
+  status           PaymentMethodStatus @default(ACTIVE)
+  transactions     Transaction[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 }
+
+model BillingAddress {
+  id           String    @id @default(uuid())
+  paymentMethodId       String    @unique
+  paymentMethod         PaymentMethod      @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
+  line1        String
+  line2        String?
+  city         String
+  state        String?
+  postalCode   String
+  country      String
+  isDefault    Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+
 
 model Transaction {
-  id          Int          @id @default(autoincrement())
-  paymentId   Int
-  payment     Payment       @relation(fields: [paymentId], references: [id])
-  type        TransactionType
-  amount      Float
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                String            @id @default(uuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id])
+  paymentMethodId   String?
+  paymentMethod     PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
+  paymentIntentId   String?  @unique
+  paymentIntent     PaymentIntent?    @relation(fields: [paymentIntentId], references: [id])
+  amount           Float
+  currency         String
+  status           TransactionStatus
+  type             TransactionType
+  description      String?
+  metadata         Json?
+  chargeId   String?           @unique
+  refund           Refund?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
-enum PaymentStatus {
+model Refund {
+  id                String            @id @default(uuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id])
+  transactionId     String            @unique
+  transaction       Transaction       @relation(fields: [transactionId], references: [id])
+  refundId    String            @unique
+  amount           Float
+  currency         String
+  status           RefundStatus
+  reason           RefundReason?
+  description      String?
+  metadata         Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+
+model PaymentIntent {
+  id                String            @id @default(uuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id])
+  paymentIntentId  String       @unique
+  amount           Float
+  currency         String
+  status           PaymentIntentStatus
+  description      String?
+  metadata         Json?
+  canceledAt       DateTime?
+  transaction     Transaction?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+
+
+model Invoice {
+  id                String            @id @default(uuid())
+  userId           String             @unique
+  user             User              @relation(fields: [userId], references: [id])
+  amount           Float
+  currency         String
+  status           InvoiceStatus
+  dueDate          DateTime?
+  paidAt           DateTime?
+  metadata         Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+
+enum PaymentMethodType {
+  CARD
+  BANK_ACCOUNT
+  WALLET
+}
+
+enum PaymentMethodStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+}
+
+enum TransactionStatus {
   PENDING
-  COMPLETED
+  SUCCEEDED
   FAILED
+  CANCELED
 }
 
 enum TransactionType {
-  DEBIT
-  CREDIT
+  CHARGE
+  REFUND
+  TRANSFER
+}
+
+enum PaymentIntentStatus {
+  REQUIRES_PAYMENT_METHOD
+  REQUIRES_CONFIRMATION
+  REQUIRES_ACTION
+  PROCESSING
+  REQUIRES_CAPTURE
+  CANCELED
+  SUCCEEDED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  UNCOLLECTIBLE
+  VOID
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+enum RefundReason {
+  DUPLICATE
+  FRAUDULENT
+  REQUESTED_BY_CUSTOMER
+  ABANDONED
 }
