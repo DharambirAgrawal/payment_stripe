@@ -1,40 +1,58 @@
 import asyncHandler from "express-async-handler"
 import { stripe } from "../../app.js";
+import { AppError } from "../errors/AppError.js";
 
 
-// {
-//     "email":"xyz@gmail.com",
-//     "name":"Don"
-// }
 export const createCustomer = asyncHandler(async (req, res) => {
-    // {
-    //     id: "cus_RJYacWHQstxAaE",
-    //     "object": "customer",
-    //     "address": null,
-    //         "balance": 0,
-    //         "created": 1732991584,
-    //         "currency": null,
-    //         "default_source": null, 
-    //         "delinquent": false, 
-    //         "description": null, 
-    //         "discount": null, 
-    //     "email": "xyz@gmail.com", 
-    //     "invoice_prefix": 
-    //     "DC225495", 
-    //     "invoice_settings": { 
-    //         "custom_fields": null, 
-    //         "default_payment_method": null, "footer": null, "rendering_options": null }, "livemode": false, "metadata": { }, "name": "Don", "next_invoice_sequence": 1, "phone": null, "preferred_locales": [], "shipping": null, "tax_exempt": "none", "test_clock": null
-    // }
+    const { name, email,description,phone,address } = req.body
 
-    const { name, email } = req.body
-    const customer = await stripe.customers.create({
-        name: name,
-        email: email
-    })
+    if(!email || !name){
+        throw new AppError("Resource not Found",400)
+    }
+
+
+     // Prepare the data object for Stripe
+     const customerData = { name:name, email:email }; // Required fields
+
+     // Add optional fields if they are provided
+     if (description) customerData.description = description;
+     if (phone) customerData.phone = phone;
+     if (address) customerData.address = address;
+ 
+     // Create customer on Stripe
+     const customer = await stripe.customers.create(customerData);
 
     res.json(customer)
 
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // {
