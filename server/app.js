@@ -25,6 +25,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger)
 
+//schedule job
+
+import {startCrons,stopCrons} from './src/middleware/stripePaymentMiddleware.js'
+// Start the cron jobs
+startCrons();
+
 //stripe initialize
 import Stripe from 'stripe';
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -84,9 +90,16 @@ process.on('unhandledRejection', (err) => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+  stopCrons();
   server.close(() => {
     console.log('💥 Process terminated!');
   });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing application...');
+  stopCrons();
+  process.exit(0);
 });
 
 export default app;

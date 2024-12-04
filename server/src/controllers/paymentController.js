@@ -3,8 +3,7 @@ import { stripe } from "../../app.js";
 import { AppError } from "../errors/AppError.js";
 import { validateEmail } from "../utils/utils.js";
 import { prisma } from "../../app.js";
-
-
+// import { cancelIntent } from "../middleware/stripePaymentMiddleware.js";
 //create customer
 export const createCustomer = asyncHandler(async (req, res) => {
     const { name, email, description, phone, address } = req.body
@@ -49,7 +48,7 @@ export const createCustomer = asyncHandler(async (req, res) => {
 // Create a payment intent
 export const paymentIntent = asyncHandler(async (req, res) => {
 
-    const { amount, currency, customer, payment,paymentMethodType, metaData , description } = req.body;
+    const { amount, currency, customer,paymentMethodType, metadata , description } = req.body;
 
     // Validate the request
     if (!amount || amount <= 0) {
@@ -72,12 +71,13 @@ export const paymentIntent = asyncHandler(async (req, res) => {
 
     // Adding optional fields if they are provided
     if (description) customerData.description = description;
-    if (metaData) customerData.metadata = metaData;
+    if (metadata) customerData.metadata = metadata;
+
 
     // Create a PaymentIntent with the specified amount
     const paymentIntent = await stripe.paymentIntents.create(customerData);
 
-    console.log(paymentIntent)
+    // console.log(paymentIntent)
 
     const data={
         userId: existingUser.id,
@@ -88,11 +88,20 @@ export const paymentIntent = asyncHandler(async (req, res) => {
     }
 
     if (description) data.description = description;
-    if (metaData) data.metadata = metaData;
+    if (metadata) data.metadata = metadata;
 
     const saveIntent=await prisma.paymentIntent.create({
         data:data
     })
+
+    //saving to schedule job
+    const runAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+    await prisma.scheduledJob.create({
+        data: {
+            paymentIntentId: paymentIntent.id,
+            runAt,
+        },
+    });
 
     if(!saveIntent){
         throw new AppError("Error saving to DB", 500)
@@ -100,20 +109,40 @@ export const paymentIntent = asyncHandler(async (req, res) => {
     res.status(200).json({
         intent_id: paymentIntent.id,
     });
+    // console.log('working..')
+//canceling the intent after 2 min
+// cancelIntent()
+// console.log('end..')
+
 });
 
 
 
 // Cancel payment intent
 export const canclePaymentIntent = asyncHandler(async (req, res) => {
-    try {
-        const { paymentId } = req.params;
-        const canceledPayment = await stripe.paymentIntents.cancel(paymentId);
-        res.json(canceledPayment);
-    } catch (error) {
-        console.error('Error canceling payment:', error);
-        res.status(500).json({ error: 'Failed to cancel payment' });
+
+    const authHeader = req.headers['authorization'];
+    const intent_id = authHeader && authHeader.split(' ')[1];
+
+    const existingIntent = await prisma.paymentIntent.findUnique({
+        where: { paymentIntentId: intent_id },
+    });
+
+    if (!existingIntent) {
+        throw new AppError("The intent not found", 404)
     }
+   
+    const canceledPayment = await stripe.paymentIntents.cancel(intent_id);
+
+    await prisma.paymentIntent.update({
+        where: { paymentIntentId: intent_id },
+        data:{
+            status:"CANCELED"
+        }
+    })
+    console.log(canceledPayment)
+    res.json(canceledPayment);
+   
 });
 
 

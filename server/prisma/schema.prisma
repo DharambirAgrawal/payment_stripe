@@ -121,6 +121,13 @@ model PaymentIntent {
    @@map("paymentintents")
 }
 
+model ScheduledJob {
+  id          String   @id @default(cuid())
+  paymentIntentId String
+  status      String   @default("pending") // "pending", "completed", "failed"
+  createdAt   DateTime @default(now())
+  runAt       DateTime // When the job should be executed
+}
 
 
 model Invoice {
