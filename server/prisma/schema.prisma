@@ -10,8 +10,9 @@ datasource db {
 
 model User {
   id                String            @id @default(uuid())
+  name              String
   email             String            @unique
-  stripeCustomerId  String?           @unique
+  stripeCustomerId  String            @unique
   paymentMethods    PaymentMethod[]
   transactions      Transaction[]
   invoices          Invoice[]
@@ -19,6 +20,8 @@ model User {
   paymentIntents    PaymentIntent[]
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+
+   @@map("users")
 }
 
 model PaymentMethod {
@@ -37,6 +40,8 @@ model PaymentMethod {
   transactions     Transaction[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+
+   @@map("paymentmethods")
 }
 
 model BillingAddress {
@@ -52,16 +57,18 @@ model BillingAddress {
   isDefault    Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+   @@map("billingaddress")
 }
 
 model Transaction {
   id                String            @id @default(uuid())
   userId           String
-  user             User              @relation(fields: [userId], references: [id])
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   paymentMethodId   String?
-  paymentMethod     PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
+  paymentMethod     PaymentMethod?    @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
   paymentIntentId   String?  @unique
-  paymentIntent     PaymentIntent?    @relation(fields: [paymentIntentId], references: [id])
+  paymentIntent     PaymentIntent?    @relation(fields: [paymentIntentId], references: [id], onDelete: Cascade)
   amount           Float
   currency         String
   status           TransactionStatus
@@ -72,14 +79,16 @@ model Transaction {
   refund           Refund?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+
+   @@map("transactions")
 }
 
 model Refund {
   id                String            @id @default(uuid())
   userId           String
-  user             User              @relation(fields: [userId], references: [id])
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactionId     String            @unique
-  transaction       Transaction       @relation(fields: [transactionId], references: [id])
+  transaction       Transaction       @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   refundId    String            @unique
   amount           Float
   currency         String
@@ -89,13 +98,14 @@ model Refund {
   metadata         Json?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+   @@map("refunds")
 }
 
 
 model PaymentIntent {
   id               String            @id @default(uuid())
   userId           String
-  user             User              @relation(fields: [userId], references: [id])
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   paymentIntentId  String            @unique
   amount           Float
   currency         String
@@ -107,6 +117,8 @@ model PaymentIntent {
   transaction      Transaction?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+
+   @@map("paymentintents")
 }
 
 
@@ -114,7 +126,7 @@ model PaymentIntent {
 model Invoice {
   id                String            @id @default(uuid())
   userId           String             
-  user             User              @relation(fields: [userId], references: [id])
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount           Float
   currency         String
   status           InvoiceStatus
@@ -123,6 +135,8 @@ model Invoice {
   metadata         Json?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+
+   @@map("invoices")
 }
 
 

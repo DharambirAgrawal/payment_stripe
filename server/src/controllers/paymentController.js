@@ -36,53 +36,99 @@ export const createCustomer = asyncHandler(async (req, res) => {
 
     await prisma.user.create({
         data: {
+            name:name,
             email: email,
             stripeCustomerId: customer.id,
         },
     });
 
-    res.status(200).json({customer_id:customer.id})
+    res.status(200).json({ customer_id: customer.id })
 })
 
 
 // Create a payment intent
 export const paymentIntent = asyncHandler(async (req, res) => {
 
-        const { amount, currency = 'usd', description } = req.body;
+    const { amount, currency, customer, payment,paymentMethodType, metaData , description } = req.body;
 
-        // Validate the request
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ error: 'Invalid amount' });
-        }
+    // Validate the request
+    if (!amount || amount <= 0) {
+        throw new AppError("Amount cannot be less than 0", 400)
+    }
+    if(!currency || !customer || !paymentMethodType ){
+        throw new AppError("Resource not found!", 400)
+    }
 
-        // Create a PaymentIntent with the specified amount
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100), // Convert to cents
-            currency,
-            description,
-            automatic_payment_methods: {
-                enabled: true,
-            },
-        });
+    //checking if user exists
+    const existingUser = await prisma.user.findUnique({
+        where: { stripeCustomerId: customer },
+    });
 
-        console.log(paymentIntent)
+    if (!existingUser) {
+        throw new AppError("User does not exist", 404)
+    }
 
-        res.json({
-            clientSecret: paymentIntent.client_secret,
-        });
+    const customerData = { amount: Math.round(amount * 100), currency: currency, payment_method_types:[paymentMethodType], customer: customer }; // Required fields
+
+    // Adding optional fields if they are provided
+    if (description) customerData.description = description;
+    if (metaData) customerData.metadata = metaData;
+
+    // Create a PaymentIntent with the specified amount
+    const paymentIntent = await stripe.paymentIntents.create(customerData);
+
+    console.log(paymentIntent)
+
+    const data={
+        userId: existingUser.id,
+        paymentIntentId: paymentIntent.id,
+        amount:amount,
+        currency:currency,
+        paymentMethodType: paymentMethodType.toUpperCase()
+    }
+
+    if (description) data.description = description;
+    if (metaData) data.metadata = metaData;
+
+    const saveIntent=await prisma.paymentIntent.create({
+        data:data
+    })
+
+    if(!saveIntent){
+        throw new AppError("Error saving to DB", 500)
+    }
+    res.status(200).json({
+        intent_id: paymentIntent.id,
+    });
 });
 
 
-export const createCard = asyncHandler(async (req, res) => {    
-        const { token, customer_id } = req.body;
 
-        // Attach the card token to the customer
-        const card = await stripe.customers.createSource(customer_id, {
-            source: token,
-        });
-        console.log(card)
+// Cancel payment intent
+export const canclePaymentIntent = asyncHandler(async (req, res) => {
+    try {
+        const { paymentId } = req.params;
+        const canceledPayment = await stripe.paymentIntents.cancel(paymentId);
+        res.json(canceledPayment);
+    } catch (error) {
+        console.error('Error canceling payment:', error);
+        res.status(500).json({ error: 'Failed to cancel payment' });
+    }
+});
 
-        res.json({ card: card.id });
+
+
+
+export const createCard = asyncHandler(async (req, res) => {
+    const { token, customer_id } = req.body;
+
+    // Attach the card token to the customer
+    const card = await stripe.customers.createSource(customer_id, {
+        source: token,
+    });
+    console.log(card)
+
+    res.json({ card: card.id });
 });
 
 
@@ -252,14 +298,3 @@ export const paymentDetails = asyncHandler(async (req, res) => {
     }
 });
 
-// Cancel payment intent
-export const canclePaymentIntent = asyncHandler(async (req, res) => {
-    try {
-        const { paymentId } = req.params;
-        const canceledPayment = await stripe.paymentIntents.cancel(paymentId);
-        res.json(canceledPayment);
-    } catch (error) {
-        console.error('Error canceling payment:', error);
-        res.status(500).json({ error: 'Failed to cancel payment' });
-    }
-});

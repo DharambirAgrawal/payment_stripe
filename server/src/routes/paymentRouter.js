@@ -10,6 +10,7 @@ const PaymentRouter = express.Router();
 export const paymentRouter =PaymentRouter
 .post('/create-customer',createCustomer)
 .post('/create-payment-intent',paymentIntent)
+.post('/cancel-payment-intent',paymentIntent)
 .post('/create-card',createCard)
 
 
