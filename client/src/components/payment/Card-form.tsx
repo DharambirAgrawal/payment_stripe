@@ -49,25 +49,39 @@ const CheckoutForm: React.FC = () => {
     setMessage({ type: '', content: '' });
 
     const cardElement = elements.getElement(CardElement) as StripeCardElement;
-    console.log(elements)
-    if (!cardElement) {
-      console.error('CardElement not found.');
-      setIsLoading(false);
-      return;
-    }
+  
+    console.log(cardElement)
+    // console.log(elements)
+    // if (!cardElement) {
+    //   console.error('CardElement not found.');
+    //   setIsLoading(false);
+    //   return;
+    // }
 
     try {
-      const { error, token } = await stripe.createToken(cardElement);
-
+      // const { error, token } = await stripe.createToken(cardElement);
+      const { error } = await stripe.confirmPayment({
+        elements, // From useElements hook
+        confirmParams: {
+          payment_method_data: {
+            billing_details: {
+              name: 'John Doe',
+              email: 'customer@example.com',
+            },
+          },
+          setup_future_usage: 'off_session', // Save for future automatic charges
+        },
+      });
       if (error) {
         setMessage({ type: 'error', content: error.message+"" });
-        console.error('Stripe tokenization error:', error.message);
+        console.error('Error saving card:', error.message);
         return;
       }
 
-      if (!token) {
-        throw new Error('Token generation failed.');
-      }
+
+      // if (!token) {
+      //   throw new Error('Token generation failed.');
+      // }
 
       const data = {
         token: token.id,
@@ -83,7 +97,7 @@ const CheckoutForm: React.FC = () => {
           "Content-Type": "application/json",
         },
       });
-      console.log(response)
+      // console.log(response)
       const result: PaymentResponse = await response.json();
       console.log(result)
       
