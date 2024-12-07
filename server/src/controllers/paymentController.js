@@ -3,6 +3,8 @@ import { stripe } from "../../app.js";
 import { AppError } from "../errors/AppError.js";
 import { validateEmail } from "../utils/utils.js";
 import { prisma } from "../../app.js";
+import { INVOICE_EMAIL_MESSAGE, INVOICE_TEMPLATE } from "../messages/emailMessages.js";
+import { sendEmail } from "../services/emailService.js";
 // import { cancelIntent } from "../middleware/stripePaymentMiddleware.js";
 //create customer
 export const createCustomer = asyncHandler(async (req, res) => {
@@ -169,6 +171,25 @@ export const createCard = asyncHandler(async (req, res) => {
 
 
 
+export const sendInvoice = asyncHandler(async (req, res) => {
+
+  
+
+    await sendEmail(
+        "dev.dharambir@gmail.com",
+        INVOICE_EMAIL_MESSAGE(),
+        [
+            {
+            //   filename: `Invoice-${invoiceData.invoiceNumber}.pdf`,
+              filename: `Invoice-123.pdf`,
+              content: await INVOICE_TEMPLATE(),
+              contentType: 'application/pdf'
+            }
+          ]
+    )
+
+    res.json({ type: "success" });
+});
 
 
 

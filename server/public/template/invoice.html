@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Professional Invoice</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background-color: #f5f5f5;
+        padding: 40px;
+      }
+
+      .invoice-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 40px;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+      }
+
+      .company-info h2 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+
+      .company-info p {
+        color: #7f8c8d;
+        line-height: 1.5;
+      }
+
+      .invoice-details {
+        text-align: right;
+      }
+
+      .invoice-details h1 {
+        color: #2c3e50;
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+
+      .invoice-details p {
+        color: #7f8c8d;
+        line-height: 1.5;
+      }
+
+      .client-info {
+        margin-bottom: 40px;
+      }
+
+      .client-info h3 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+
+      .client-info p {
+        color: #7f8c8d;
+        line-height: 1.5;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+      }
+
+      th {
+        background-color: #f8f9fa;
+        padding: 12px;
+        text-align: left;
+        color: #2c3e50;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #dee2e6;
+        color: #2c3e50;
+      }
+
+      .amount {
+        text-align: right;
+      }
+
+      .total-section {
+        margin-left: auto;
+        width: 300px;
+      }
+
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        color: #2c3e50;
+      }
+
+      .total-row.final {
+        font-weight: bold;
+        font-size: 1.2em;
+        border-top: 2px solid #dee2e6;
+        margin-top: 8px;
+        padding-top: 12px;
+      }
+
+      .notes {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6;
+      }
+
+      .notes h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+      }
+
+      .notes p {
+        color: #7f8c8d;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="invoice-container">
+      <div class="invoice-header">
+        <div class="company-info">
+          <h2>Your Company Name</h2>
+          <p>
+            123 Business Street<br />
+            City, State 12345<br />
+            Phone: (555) 555-5555<br />
+            Email: company@example.com
+          </p>
+        </div>
+        <div class="invoice-details">
+          <h1>INVOICE</h1>
+          <p>
+            <strong>Invoice Number:</strong> INV-2024-001<br />
+            <strong>Date:</strong> December 7, 2024<br />
+            <strong>Due Date:</strong> December 21, 2024
+          </p>
+        </div>
+      </div>
+
+      <div class="client-info">
+        <h3>Bill To:</h3>
+        <p>
+          Client Name<br />
+          Client Company Name<br />
+          456 Client Street<br />
+          Client City, State 67890
+        </p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Item Description</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th class="amount">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Web Development Services</td>
+            <td>40</td>
+            <td>$75.00</td>
+            <td class="amount">$3,000.00</td>
+          </tr>
+          <tr>
+            <td>UI/UX Design</td>
+            <td>20</td>
+            <td>$100.00</td>
+            <td class="amount">$2,000.00</td>
+          </tr>
+          <tr>
+            <td>Content Creation</td>
+            <td>10</td>
+            <td>$50.00</td>
+            <td class="amount">$500.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="total-section">
+        <div class="total-row">
+          <span>Subtotal:</span>
+          <span>$5,500.00</span>
+        </div>
+        <div class="total-row">
+          <span>Tax (10%):</span>
+          <span>$550.00</span>
+        </div>
+        <div class="total-row final">
+          <span>Total:</span>
+          <span>$6,050.00</span>
+        </div>
+      </div>
+
+      <div class="notes">
+        <h4>Notes</h4>
+        <p>
+          Payment is due within 14 days. Please make checks payable to Your
+          Company Name or pay via bank transfer using the details provided
+          separately.
+        </p>
+        <p>Thank you for your business!</p>
+      </div>
+    </div>
+  </body>
+</html>

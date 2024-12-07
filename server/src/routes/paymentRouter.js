@@ -1,6 +1,6 @@
 import express from "express";
 
-import { webHook,paymentDetails, test,createCard,createCharge } from "../controllers/paymentController.js";
+import { webHook,paymentDetails, test,createCard,createCharge, sendInvoice } from "../controllers/paymentController.js";
 
 import { createCustomer,paymentIntent,canclePaymentIntent } from "../controllers/paymentController.js";
 const PaymentRouter = express.Router();
@@ -18,3 +18,4 @@ export const paymentRouter =PaymentRouter
 .post('/webhook', express.raw({ type: 'application/json' }),webHook)
 .get('/payment/:paymentId',paymentDetails)
 .post('/cancel-payment/:paymentId',canclePaymentIntent)
+.post('/send-invoice',sendInvoice)
