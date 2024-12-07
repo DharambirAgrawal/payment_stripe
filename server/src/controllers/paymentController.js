@@ -151,13 +151,52 @@ export const canclePaymentIntent = asyncHandler(async (req, res) => {
 
 
 export const createCard = asyncHandler(async (req, res) => {
-    const { token, customer_id } = req.body;
+    const { line1, city, state, postalCode, country, line2 } = req.body;
 
+    const authHeader = req.headers['authorization'];
+    const customerId = authHeader && authHeader.split(' ')[1];
+    const cardToken = authHeader && authHeader.split(' ')[2];
+
+    if(!cardToken || !customerId){
+        throw new AppError("Tokens not provided", 500)
+    }
+
+    if(!line1 || !city || !state || !postalCode || !country ){
+        throw new AppError("Address not provided", 400)
+    }
+
+    const existingUser = await prisma.user.findUnique({
+        where: { stripeCustomerId: customerId },
+    });
+
+    if(!existingUser){
+        throw new AppError("User not found", 404)
+    }
+    
     // Attach the card token to the customer
-    const card = await stripe.customers.createSource(customer_id, {
-        source: token,
+    const card = await stripe.customers.createSource(customerId, {
+        source: cardToken,
     });
     console.log(card)
+
+    const saveCard=await prisma.paymentMethod.create({
+        data:{
+            paymentMethodId:card.id,
+            type:"CARD",
+            brand:card.brand,
+            last4:card.last4,
+            expiryMonth:card.exp_month,
+            expiryYear:card.exp_year,
+            status:"ACTIVE",
+            isDefault:true,
+            billingAddress:{
+                create:{
+                    line1, city, state, postalCode, country, line2
+                }
+            }
+        },
+
+    })
 
     res.json({ card: card.id });
 });
