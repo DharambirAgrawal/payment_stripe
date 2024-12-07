@@ -27,9 +27,9 @@ app.use(logger)
 
 //schedule job
 
-import {startCrons,stopCrons} from './src/middleware/stripePaymentMiddleware.js'
-// Start the cron jobs
-startCrons();
+// import {startCrons,stopCrons} from './src/middleware/stripePaymentMiddleware.js'
+// // Start the cron jobs
+// startCrons();
 
 //stripe initialize
 import Stripe from 'stripe';

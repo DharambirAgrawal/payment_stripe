@@ -118,7 +118,7 @@ export const paymentIntent = asyncHandler(async (req, res) => {
 
 
 
-// Cancel payment intent
+// Cancel payment intent (needed to complete)
 export const canclePaymentIntent = asyncHandler(async (req, res) => {
 
     const authHeader = req.headers['authorization'];
