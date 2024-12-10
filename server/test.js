@@ -8,70 +8,119 @@
 // 429	Too Many Requests	Too many requests hit the API too quickly. We recommend an exponential backoff of your requests.
 // 500, 502, 503, 504	Server Errors	Something went wrong on Stripe’s end. (These are rare.)
 //here are test
+// Backend: Create Setup Intent (only save payment method)
 
-
-const paymentMethodId = 'pm_xxx'; // From the frontend response
-await stripe.paymentMethods.attach(paymentMethodId, {
-  customer: 'cus_12345', // Customer ID
-});
-
-await stripe.customers.update('cus_12345', {
-  invoice_settings: {
-    default_payment_method: paymentMethodId,
-  },
-});
-const subscription = await stripe.subscriptions.create({
-    customer: 'cus_12345', // Customer ID
-    items: [{ price: 'price_abc123' }], // Replace with your price ID
-    default_payment_method: 'pm_xxx', // The saved payment method
+// 1. Create Customer
+const createCustomer = async (email, name) => {
+  const customer = await stripe.customers.create({
+    email: email,
+    name: name
   });
-  
-  console.log('Subscription ID:', subscription.id);
+  return customer;
+};
 
-  
+// 2. Create Setup Intent (only save payment method)
+const createSetupIntent = async (customerId) => {
+  const setupIntent = await stripe.setupIntents.create({
+    customer: customerId,
+    payment_method_types: ['card'],
+  });
+  return setupIntent;
+};
+
+// 3. Create Payment Intent with setup_future_usage (charge and save)
+const createPaymentIntentAndSave = async (amount, currency, customerId) => {
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: 2000, // Amount in cents
-    currency: 'usd',
-    customer: 'cus_12345',
-    payment_method: 'pm_xxx',
-    off_session: true,
-    confirm: true,
+    amount: amount,
+    currency: currency,
+    customer: customerId,
+    setup_future_usage: 'off_session', // This saves the payment method
+    payment_method_types: ['card'],
   });
-  
-  console.log('Payment Intent Status:', paymentIntent.status);
+  return paymentIntent;
+};
 
-  
+// 4. Create Payment Intent (charge only, no saving)
+const createPaymentIntent = async (amount, currency) => {
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: currency,
+    payment_method_types: ['card'],
+  });
+  return paymentIntent;
+};
 
-  {
-    id: 'pi_12345',
-    amount: 2000,
-    currency: 'usd',
-    status: 'succeeded',
-    payment_method: 'pm_67890', // The saved payment method ID
-    customer: 'cus_ABC123',    // The associated customer ID
-    charges: {
-      data: [
-        {
-          id: 'ch_12345',
-          status: 'succeeded',
-          payment_method_details: {
-            card: {
-              brand: 'visa',
-              last4: '4242',
-              exp_month: 12,
-              exp_year: 2024,
-            },
-          },
-        },
-      ],
+// Confirm the payment on the client side after PaymentElement submission
+const handleSubmit = async (elements, stripe) => {
+  const { error } = await stripe.confirmPayment({
+    elements,
+    confirmParams: {
+      return_url: 'https://your-domain.com/payment-complete',
     },
-    setup_future_usage: 'off_session',
-  }
+  });
 
-  {
-    type: 'card_error',
-    message: 'Your card was declined.',
-    code: 'card_declined',
-    decline_code: 'insufficient_funds',
+  if (error) {
+    // Handle error
+    console.error(error);
   }
-  
+};
+
+// For setup intent confirmation (saving payment method only)
+const handleSetupSubmit = async (elements, stripe) => {
+  const { error } = await stripe.confirmSetup({
+    elements,
+    confirmParams: {
+      return_url: 'https://your-domain.com/setup-complete',
+    },
+  });
+
+  if (error) {
+    // Handle error
+    console.error(error);
+  }
+};
+
+
+const createSetupIntent = async (customerId) => {
+  const setupIntent = await stripe.setupIntents.create({
+    customer: customerId,
+    payment_method_types: ['card'],
+    // No amount specified because we're only saving the payment method
+  });
+  return setupIntent;
+};
+
+// Frontend: Handle the setup intent submission
+const handleSetupSubmit = async (elements, stripe) => {
+  const { error } = await stripe.confirmSetup({
+    elements,
+    confirmParams: {
+      return_url: 'https://your-domain.com/setup-complete',
+    },
+  });
+
+  if (error) {
+    // Handle error
+    console.error(error);
+  }
+};
+
+// Example usage in your React component:
+const SaveCardComponent = () => {
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    
+    if (!stripe || !elements) {
+      return;
+    }
+
+    await handleSetupSubmit(elements, stripe);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <PaymentElement />
+      <button type="submit">Save Card</button>
+    </form>
+  );
+};

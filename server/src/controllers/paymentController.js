@@ -69,7 +69,7 @@ export const paymentIntent = asyncHandler(async (req, res) => {
         throw new AppError("User does not exist", 404)
     }
 
-    const customerData = { amount: Math.round(amount * 100), currency: currency, payment_method_types:[paymentMethodType], customer: customer }; // Required fields
+    const customerData = { amount: Math.round(amount * 100), currency: currency, payment_method_types:[paymentMethodType], customer: customer,  setup_future_usage: 'off_session' }; // Required fields
 
     // Adding optional fields if they are provided
     if (description) customerData.description = description;
@@ -86,7 +86,7 @@ export const paymentIntent = asyncHandler(async (req, res) => {
         paymentIntentId: paymentIntent.id,
         amount:amount,
         currency:currency,
-        paymentMethodType: paymentMethodType.toUpperCase()
+        paymentMethodType: paymentMethodType.toUpperCase(),
     }
 
     if (description) data.description = description;
