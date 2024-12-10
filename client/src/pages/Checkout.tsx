@@ -1,6 +1,6 @@
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
-import CheckoutForm from '../components/payment/Card-form';
+// import CheckoutForm from '../components/payment/Card-form';
 
 const stripePromise = loadStripe(import.meta.env.VITE_PUBLISHABLE_KEY);
 
@@ -12,7 +12,10 @@ const Checkout = () => {
       return (
         <>
           <Elements stripe={stripePromise} options={options}>
-            <CheckoutForm />
+            <div>
+              hhhhh
+            </div>
+            {/* <CheckoutForm /> */}
           </Elements>
         </>
       );
