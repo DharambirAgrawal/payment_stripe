@@ -48,19 +48,9 @@ const CheckoutForm: React.FC = () => {
     setIsLoading(true);
     setMessage({ type: '', content: '' });
 
-    const cardElement = elements.getElement(CardElement) as StripeCardElement;
-  
-    console.log(cardElement)
-    // console.log(elements)
-    // if (!cardElement) {
-    //   console.error('CardElement not found.');
-    //   setIsLoading(false);
-    //   return;
-    // }
-
     try {
       // const { error, token } = await stripe.createToken(cardElement);
-      const { error } = await stripe.confirmPayment({
+      const a = await stripe.confirmPayment({
         elements, // From useElements hook
         confirmParams: {
           payment_method_data: {
@@ -69,9 +59,10 @@ const CheckoutForm: React.FC = () => {
               email: 'customer@example.com',
             },
           },
-          setup_future_usage: 'off_session', // Save for future automatic charges
+        setup_future_usage: 'off_session', // Save for future automatic charges
         },
       });
+      console.log(a)
       if (error) {
         setMessage({ type: 'error', content: error.message+"" });
         console.error('Error saving card:', error.message);
