@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./pages/Layout";
 import Home from "./pages/Home";
 import Checkout from "./pages/Checkout";
-import NoPage from "./pages/NoPage";
 import DynamicPage from './pages/Dynamic';
 export default function App() {
   return (
