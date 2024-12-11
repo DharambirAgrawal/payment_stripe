@@ -10,20 +10,20 @@ import { logger } from "./src/utils/logger.js";
 
 const app = express();
 
-// const corsOptions = { 
-//   // origin:'https://abc.onrender.com',
-//   AccessControlAllowOrigin: '*',  
-//   origin: '*',  
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE' 
-// }
+
 app.use(cors());
 
-app.use("/home",express.static('public'))
+// app.use("/home",express.static('public'))
+import path from 'path';
+import { __dirname } from "./index.js";
+app.use(express.static('public/dist'))
+
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger)
+
 
 //schedule job
 
@@ -43,7 +43,7 @@ export const prisma = new PrismaClient();
 //routes
 import { paymentRouter } from "./src/routes/paymentRouter.js";
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'success', message: 'Server is healthy' });
   });
 app.use("/api/payments/stripe", paymentRouter);
