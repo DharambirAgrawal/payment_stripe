@@ -13,16 +13,25 @@ const app = express();
 
 app.use(cors());
 
-// app.use("/home",express.static('public'))
-import path from 'path';
-import { __dirname } from "./index.js";
-app.use(express.static('public/dist'))
-
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger)
+
+//static files
+import path from 'path';
+import { __dirname } from "./index.js";
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'public/dist')));
+
+// Catch-all route to serve `index.html` for React's client-side routing
+app.get('/checkout/:id', (req, res,next) => {
+  console.log(req.params)
+// return next()
+  res.sendFile(path.join(__dirname, 'public/dist', 'index.html'));
+});
+
 
 
 //schedule job
