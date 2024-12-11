@@ -6,7 +6,7 @@ import Layout from "./pages/Layout";
 import Home from "./pages/Home";
 import Checkout from "./pages/Checkout";
 import NoPage from "./pages/NoPage";
-
+import DynamicPage from './pages/Dynamic';
 export default function App() {
   return (
     <BrowserRouter>
@@ -14,6 +14,7 @@ export default function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="checkout" element={<Checkout />} />
+          <Route path="/checkout/:id" element={<DynamicPage />} />
           <Route path="*" element={<NoPage />} />
         </Route>
       </Routes>

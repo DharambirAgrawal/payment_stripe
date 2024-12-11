@@ -12,10 +12,10 @@ import { Separator } from "../ui/separator";
 
 // --legacy-peer-deps
 
-type StateType = {
-    type: "error" | "success" | "";
-    content: string
-}
+// type StateType = {
+//     type: "error" | "success" | "";
+//     content: string
+// }
 
 
 
@@ -24,8 +24,9 @@ const CheckoutForm = () => {
     'use server'
     const stripe = useStripe();
     const elements = useElements();
-    const handleCheckout = async (previousState, formData) => {
+    const handleCheckout = async (previousState:any, formData:any) => {
         console.log(Object.fromEntries(formData))
+        console.log(previousState)
 
         // if(!name || !line1  || !zipCode || !country || !state || !city){
 

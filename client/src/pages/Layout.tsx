@@ -14,6 +14,9 @@ const Layout = () => {
           <li>
             <Link to="/contact">Contact</Link>
           </li>
+          <li>
+            <Link to="/checkout/12312">Dynamic</Link>
+          </li>
         </ul>
       </nav>
 
