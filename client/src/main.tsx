@@ -15,7 +15,7 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="/checkout/:id" element={<DynamicPage />} />
-          <Route path="*" element={<NoPage />} />
+          {/* <Route path="*" element={<NoPage />} /> */}
         </Route>
       </Routes>
     </BrowserRouter>
