@@ -102,6 +102,8 @@ export default function BillingAddressForm() {
                 <option value="CA">Canada</option>
                 <option value="US">United State</option>
                 <option value="UK">United Kingdom</option>
+                <option value="IND">India</option>
+
             </select>
             
            
